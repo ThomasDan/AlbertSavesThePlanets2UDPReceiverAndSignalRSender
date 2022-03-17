@@ -47,8 +47,7 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
         {
             while (true)
             {
-                //BeginReceive();
-                SendPlanet("BENIS HAHA");
+                BeginReceive();
                 Thread.Sleep(500);
             }
         }
