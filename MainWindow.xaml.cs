@@ -38,8 +38,12 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
                 await Task.Delay(new Random().Next(0, 5) * 1000);
                 await connection.StartAsync();
             };
+
+
             // UDP
             Create();
+
+            //
             Connect_();
         }
 
