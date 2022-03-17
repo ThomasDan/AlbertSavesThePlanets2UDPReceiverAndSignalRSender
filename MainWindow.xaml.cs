@@ -45,6 +45,11 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
 
         public async void Loop(object sender, RoutedEventArgs e)
         {
+            await Loop_True();
+        }
+
+        private async Task Loop_True()
+        {
             while (true)
             {
                 BeginReceive();
