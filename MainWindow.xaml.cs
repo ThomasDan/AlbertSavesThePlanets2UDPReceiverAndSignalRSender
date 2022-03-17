@@ -64,6 +64,7 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
         public void BeginReceive()
         {
             socket.BeginReceive(new AsyncCallback(OnUdpData), socket);
+            MessageBox.Text += ($"\nBegin Receive");
         }
 
         private void OnUdpData(IAsyncResult result)
@@ -73,6 +74,7 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
             byte[] message = socket.EndReceive(result, ref source);
             string returnData = Encoding.ASCII.GetString(message);
             Console.WriteLine("Data: " + returnData.ToString() + " from " + source);
+            MessageBox.Text += ($"\nData: {returnData.ToString()} from {source}");
             SendPlanet(returnData);
         }
         //  UDP END
@@ -80,6 +82,7 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
 
         private async void Connect_()
         {
+            MessageBox.Text += ($"\nAwait connect Signal R");
             await ConnectSignalR();
         }
 
@@ -90,10 +93,19 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
                 this.Dispatcher.Invoke(() =>
                 {
                     var newMessage = $"{message}";
+                    MessageBox.Text += ($"\nConnection on, dispatcher invoke, new message");
                 });
             });
 
-            await connection.StartAsync();
+            try
+            {
+                await connection.StartAsync();
+                MessageBox.Text += ($"\nConnection started Async");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Text += ($"\nConnection exception {ex.Message}");
+            }
         }
 
         private async void SendPlanet(string planet)
@@ -101,10 +113,12 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
             try
             {
                 await connection.InvokeAsync("SendMessage", planet);
+                MessageBox.Text += ($"\nSend planet, connection invoke async, send message planet");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                MessageBox.Text += ($"\nSend planet exception, {ex.Message}");
             }
         }
     }
