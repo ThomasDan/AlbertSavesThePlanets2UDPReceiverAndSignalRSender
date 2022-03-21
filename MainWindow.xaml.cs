@@ -25,13 +25,21 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
     public partial class MainWindow : Window
     {
         HubConnection connection;
+        public static Thread signalRThread;
+        public static object MessageBoxLock = new object();
+
         public MainWindow()
         {
             InitializeComponent();
 
+            signalRThread = new Thread(new ThreadStart(Loop_True));
+
+
             connection = new HubConnectionBuilder()
                 .WithUrl("http://localhost:32258/ChatHub")
                 .Build();
+
+
 
             connection.Closed += async (error) =>
             {
@@ -39,25 +47,42 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
                 await connection.StartAsync();
             };
 
+            Connect_();
 
             // UDP
             Create();
-
-            //
-            Connect_();
         }
 
         public async void Loop(object sender, RoutedEventArgs e)
         {
-            await Loop_True();
+            signalRThread.Start();
         }
 
-        private async Task Loop_True()
+        
+
+        internal async void Loop_True()
         {
+            /*Dictionary<int, string> dictionary = new Dictionary<int, string>()
+            {
+                { 5, "2021353134" },     // Mercury
+                { 6, "16914689137" },     // venus
+                { 3, "1034590137" },     // Earth
+                { 0, "121164164110" },   // Mars
+                { 8, "9717780195" },     // Sayt'urn
+                { 2, "16916921689" },    // Juppiter
+                { 7, "5716120143" },     // Uranus
+                { 1, "897121989" },     // Neptune
+                { 4, "16317989137" }     // pluto
+            };*/
+
             while (true)
             {
                 BeginReceive();
-                Thread.Sleep(500);
+                Thread.Sleep(250);
+                /*foreach (KeyValuePair<int, string> kvp in dictionary)
+                {
+                    SendPlanet(kvp.Key + kvp.Value);
+                }*/
             }
         }
 
@@ -73,25 +98,40 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
         public void BeginReceive()
         {
             socket.BeginReceive(new AsyncCallback(OnUdpData), socket);
-            MessageBox.Text += ($"\nBegin Receive");
         }
 
         private void OnUdpData(IAsyncResult result)
         {
-            UdpClient socket = result.AsyncState as UdpClient;
+            socket = result.AsyncState as UdpClient; // UdpClient
             IPEndPoint source = new IPEndPoint(0, 0);
             byte[] message = socket.EndReceive(result, ref source);
             string returnData = Encoding.ASCII.GetString(message);
             Console.WriteLine("Data: " + returnData.ToString() + " from " + source);
-            MessageBox.Text += ($"\nData: {returnData.ToString()} from {source}");
+            AddToMessageBox($"Data: {returnData.ToString()} from {source}");
             SendPlanet(returnData);
         }
         //  UDP END
 
+        public void AddToMessageBox(string message)
+        {
+            /*
+            Monitor.Enter(MessageBoxLock);
+            try
+            {
+                messageBoxText += "\n" + message;
+            }
+            finally
+            {
+                Monitor.PulseAll(MessageBoxLock);
+                Monitor.Exit(MessageBoxLock);
+            }
+            */
+            Dispatcher.BeginInvoke((Action)(() => MessageBox.AppendText("\n" + message)));
+        }
 
         private async void Connect_()
         {
-            MessageBox.Text += ($"\nAwait connect Signal R");
+            AddToMessageBox("Await connect Signal R");
             await ConnectSignalR();
         }
 
@@ -102,18 +142,19 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
                 this.Dispatcher.Invoke(() =>
                 {
                     var newMessage = $"{message}";
-                    MessageBox.Text += ($"\nConnection on, dispatcher invoke, new message");
+                    AddToMessageBox("Connection on, dispatcher invoke, new message");
                 });
             });
 
             try
             {
                 await connection.StartAsync();
-                MessageBox.Text += ($"\nConnection started Async");
+                AddToMessageBox("Connection started Async");
             }
             catch (Exception ex)
             {
-                MessageBox.Text += ($"\nConnection exception {ex.Message}");
+                Connect_();
+                AddToMessageBox($"Connection exception {ex.Message}");
             }
         }
 
@@ -122,12 +163,12 @@ namespace AlbertSavesThePlanets2UDPReceiverAndSignalRSender
             try
             {
                 await connection.InvokeAsync("SendMessage", planet);
-                MessageBox.Text += ($"\nSend planet, connection invoke async, send message planet");
+                AddToMessageBox($"Send planet, connection invoke async, send message planet");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                MessageBox.Text += ($"\nSend planet exception, {ex.Message}");
+                AddToMessageBox($"Send planet exception, {ex.Message}");
             }
         }
     }
