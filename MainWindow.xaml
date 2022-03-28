@@ -8,7 +8,7 @@
         Title="MainWindow" Height="350" Width="350" Background="LightGray">
         
     <Grid>
-        <Button x:Name="Start" FontSize="12" FontWeight="Bold" Content="Initialize Joachim The Arduino King" Click="Loop"  HorizontalAlignment="Center" Margin="0,0,0,200" VerticalAlignment="Center" Width="225" Height="50"/>
+        <Button x:Name="StartButton" FontSize="12" FontWeight="Bold" Content="Start Receiving" Click="EngageLoop"  HorizontalAlignment="Center" Margin="0,0,0,200" VerticalAlignment="Center" Width="225" Height="50"/>
         <TextBox x:Name="MessageBox" FontSize="12" VerticalAlignment="Bottom" Height="200" Width="200" Margin="0,0,0,10"></TextBox>
     </Grid>
 </Window>
